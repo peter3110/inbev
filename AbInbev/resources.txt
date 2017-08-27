@@ -42,13 +42,25 @@ ogr2ogr "ESRI Shapefile" wgs84.shp data/Codgeo_Buenos_Aires_con_datos/Buenos_Air
 desde:                        +proj=tmerc +lat_0=-90 +lon_0=-66 +k=1 +x_0=3500000 +y_0=0 +ellps=WGS84 +units=m +no_defs
 hasta:  WGS 84 (EPSG:4326) => +proj=longlat +datum=WGS84 +no_defs 
 
+####
 
 import geopandas as gpd
 tmp = gpd.GeoDataFrame.from_file('data/Codgeo_Buenos_Aires_con_datos/Buenos_Aires_con_datos.shp')
 tmpWGS84 = tmp.to_crs({'proj':'longlat', 'ellps':'WGS84', 'datum':'WGS84'})
 tmpWGS84.to_file('test.shp')
 
+####
+
+
 scale":[0.000672979471823426,0.0007773133988608576],"translate":[-63.39179454467813,-41.0366858663355]
 [[[-64.3579101562,-40.8138092306],[-55.7006835937,-40.8138092306],[-55.7006835937,-33.29468094],[-64.3579101562,-33.29468094],[-64.3579101562,-40.8138092306]]]
 
 topojson --width=500 --height=800 --projection 'd3.geo.mercator' -o out.json -- data/Codgeo_Buenos_Aires_con_datos/Buenos_Aires_con_datos.shp
+
+
+
+
+
+
+
+

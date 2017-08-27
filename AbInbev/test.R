@@ -12,6 +12,9 @@ tot_personas_por_vivienda_por_radio <- read.csv('dadta/data_hogares_viviendas/HO
 radios_caba <- readOGR("data/Codgeo_CABA_con_datos/", "cabaxrdatos")
 radios_prov <- readOGR("data/Codgeo_Buenos_Aires_con_datos/", "Buenos_Aires_con_datos")
 
+#
+edades_por_radio$radio[edades_por_radio$radio == 068821704]
+
 # JOINEO LA DATA SEGUN 'RADIO'
 radios_caba@data$id = rownames(radios_caba@data)
 radios_caba@data$RADIO_FULL = as.integer(paste0(radios_caba@data$PROV, 

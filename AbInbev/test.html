@@ -53,8 +53,8 @@ var zoom = d3.zoom()
 
     console.log(e.transform);
 
-    features.style("stroke-width", 1.5 / d3.event.transform.k + "px");
-    features.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")scale(" + d3.event.transform.k + ")"); // updated for d3 v4
+    //features.style("stroke-width", 1.5 / d3.event.transform.k + "px");
+    //features.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")scale(" + d3.event.transform.k + ")"); // updated for d3 v4
 
 		//projection.attr("scale", e.transform.k + "px");
 		//features.select(".subunits").style("stroke-width", e.transform.k + "px");
@@ -79,22 +79,22 @@ var projection = d3.geoMercator()
 var path = d3.geoPath()
     .projection(projection);
 
-d3.json("testTopo.json", function(error, dat) {
+d3.json("out.geojson", function(error, dat) {
   if (error) throw error;
-
+  console.log(dat);
   //
   features.append("g")
       .attr("id", "radios")
     .selectAll("path")
-    	.data(topojson.feature(dat, dat.objects.test).features)
+    	.data(dat.features)
     .enter().append("path")
       .attr("d", path)
       .on("click", clicked);
 
-  features.append("path")
+  /*features.append("path")
       .datum(topojson.mesh(dat, dat.objects.test, function(a, b) { return a != b; }))
       .attr("id", "radios-borde")
-      .attr("d", path);
+      .attr("d", path);*/
 
 });
 
