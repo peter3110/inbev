@@ -1,0 +1,54 @@
+
+. https://github.com/jazzido/liberacion-del-censo
+
+. http://blog.jazzido.com/2014/02/24/resultados-censo-2010-radio-censal/
+
+. http://www.indec.gov.ar/codgeo.asp
+
+. http://geoservicios.indec.gov.ar/codgeo/index.php?pagina=definiciones
+
+. http://www.indec.gob.ar/nivel4_default.asp?id_tema_1=1&id_tema_2=39&id_tema_3=120
+
+. http://200.51.91.245/argbin/RpWebEngine.exe/PortalAction?&MODE=MAIN&BASE=CPV2010B&MAIN=WebServerMain.inl
+
+. http://dump.jazzido.com/CNPHV2010-RADIO/
+
+. https://medium.com/@mbostock/command-line-cartography-part-1-897aa8f8ca2c
+
+####
+
+topojson buenosAires.json > buenosAiresTopo.json
+
+
+ogr2ogr -simplify .001 caba.shp data/Codgeo_CABA_con_datos/cabaxrdatos.shp
+
+ogr2ogr -f GeoJSON caba2.json caba/caba.shp
+
+ogr2ogr -f geojson caba22.geojson caba2.json -t_srs epsg:4326 -s_srs epsg:740
+
+topojson --width=500 --height=300 --margin=10 --cartesian -o out.json -- data/Codgeo_Buenos_Aires_con_datos/Buenos_Aires_con_datos.shp
+
+ogr2ogr  -f "GeoJSON" -t_srs crs:84 germany.json vg250_L.shp
+
+ogr2ogr -f "ESRI Shapefile" original.shp wgs84.shp -s_srs EPSG:27700 -t_srs EPSG:4326
+
+ogr2ogr -f "ESRI Shapefile" wgs84.shp data/Codgeo_Buenos_Aires_con_datos/Buenos_Aires_con_datos.shp -s_srs EPSG:27700 -t_srs EPSG:4326
+
+https://mygeodata.cloud/conversion#
+
+
+ogr2ogr "ESRI Shapefile" wgs84.shp data/Codgeo_Buenos_Aires_con_datos/Buenos_Aires_con_datos.shp 
+
+desde:                        +proj=tmerc +lat_0=-90 +lon_0=-66 +k=1 +x_0=3500000 +y_0=0 +ellps=WGS84 +units=m +no_defs
+hasta:  WGS 84 (EPSG:4326) => +proj=longlat +datum=WGS84 +no_defs 
+
+
+import geopandas as gpd
+tmp = gpd.GeoDataFrame.from_file('data/Codgeo_Buenos_Aires_con_datos/Buenos_Aires_con_datos.shp')
+tmpWGS84 = tmp.to_crs({'proj':'longlat', 'ellps':'WGS84', 'datum':'WGS84'})
+tmpWGS84.to_file('test.shp')
+
+scale":[0.000672979471823426,0.0007773133988608576],"translate":[-63.39179454467813,-41.0366858663355]
+[[[-64.3579101562,-40.8138092306],[-55.7006835937,-40.8138092306],[-55.7006835937,-33.29468094],[-64.3579101562,-33.29468094],[-64.3579101562,-40.8138092306]]]
+
+topojson --width=500 --height=800 --projection 'd3.geo.mercator' -o out.json -- data/Codgeo_Buenos_Aires_con_datos/Buenos_Aires_con_datos.shp
