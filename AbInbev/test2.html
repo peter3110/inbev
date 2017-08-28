@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<meta name="viewport" content="initial-scale=1.0, user-scalable=no"/>
+<style>
+
+html, body, #map {
+
+  margin: 0;
+  padding: 0;
+}
+
+.counties {
+  fill: brown;
+  stroke: #00c;
+}
+
+.stations, .stations svg {
+  position: absolute;
+}
+
+.stations svg {
+  width: 60px;
+  height: 20px;
+  padding-right: 100px;
+  font: 10px sans-serif;
+}
+
+.stations circle {
+  fill: brown;
+  stroke: black;
+  stroke-width: 1.5px;
+}
+
+</style>
+<div id="map"></div>
+
+<script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false&key=AIzaSyDPUI5z3HAdZ14sqjKweoEIiCEql0wimhY"></script>
+<script src="http://maps.google.com/maps/api/js?sensor=true"></script>
+<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
+<script src="http://d3js.org/d3.v3.min.js"></script>
+<script src="http://d3js.org/queue.v1.min.js"></script>
+<script src="geojson-google-maps-master/GeoJSON.js"></script>
+<script src="Polyline_context.js"></script>
+<script>
+
+// Create the Google Map…
+var map = new google.maps.Map(d3.select("#map").node(), {
+  zoom: 1,
+  center: new google.maps.LatLng(37.76487, -122.41948),
+  mapTypeId: google.maps.MapTypeId.ROADMAP
+});
+var polyline = new google.maps.Polyline({
+  map: map
+});
+
+var width = 900,
+    height = 600;
+jQuery(document).ready(function() {
+    jQuery('#map').width(width);
+    jQuery('#map').height(height);
+});
+
+var context, equator;
+var layer, layer2, path, path2, cities;
+
+//
+// Load the station data. When the data comes back, create an overlay.
+d3.json("stations.json", function(error, data) {
+  d3.json("data1.json", function (error2, data2) {
+
+  var overlay = new google.maps.OverlayView();
+  overlay.onAdd = function() {
+    // define layers
+    layer = d3.select(this.getPanes().overlayLayer).append("div")
+        .attr("class", "stations");
+
+    // Draw each marker as a separate SVG element.
+    // We could use a single SVG, but what size would it have?
+    overlay.draw = function() {
+      var projection = this.getProjection(),
+          padding = 10;
+      
+   // AGREGAR RADIOS CENSALES DE BUENOS AIRES (???????)
+      var projection2=d3.geo.mercator()
+                    .scale(40.5 * Math.pow(2, map.getZoom()))
+                    .translate([0,0]);
+      path2 = d3.geo.path().projection(projection2);
+        
+      var g_ = d3.select(this.getPanes().overlayLayer).append("div")
+        .attr("width", width)
+        .attr("height", height)
+        .append("g")
+        .attr("class", "counties")
+        .attr("id","pathgroup");
+
+      console.log(data2);
+      g_.selectAll("path")
+        .data(data2.features)
+        .enter().append("path")
+        .attr("d", path);
+
+    var centerPixel = projection2([map.getCenter().lng(), map.getCenter().lat()]);
+    var translate = [(width / 2 - centerPixel[0]), (height / 2 - centerPixel[1])];
+    d3.select("#pathgroup").attr("transform", "translate(" + translate + ")scale(1)");
+
+      /////////////
+      // AGREGAR STATIONS 
+      var marker = layer.selectAll("svg")
+          .data(d3.entries(data))
+          .each(transform) // update existing markers
+        .enter().append("svg")
+          .each(transform)
+          .attr("class", "marker");
+      // Add a circle.
+      marker.append("circle")
+          .attr("r", 4.5)
+          .attr("cx", padding)
+          .attr("cy", padding);
+      // Add a label.
+      marker.append("text")
+          .attr("x", padding + 7)
+          .attr("y", padding)
+          .attr("dy", ".31em")
+          .text(function(d) { return d.key; });
+      function transform(d) {
+        d = new google.maps.LatLng(d.value[1], d.value[0]); // ver formato del json
+        d = projection.fromLatLngToDivPixel(d);
+
+        return d3.select(this)
+            .style("left", (d.x - padding) + "px")
+            .style("top", (d.y - padding) + "px");
+      }
+
+    };
+  };
+
+  // Bind our overlay to the map
+  overlay.setMap(map);
+//});
+})});
+
+</script>

@@ -1,132 +1,85 @@
-<!DOCTYPE html>
+<head>
+  <title>App</title>
+  <style type="text/css">
+      html { height: 100% }
+      body { height: 100%; margin: 0; padding: 0 }
+      #map-canvas { height: 100%; }
+    </style>
+  <script src="https://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false">
+    </script>
+    <script src="http://d3js.org/d3.v3.js" charset="utf-8"></script>
+    <script src="Polyline_context.js"></script>
+
+    <script src="proj4.js"></script>
+
+    <script type="text/javascript">
+    var map;
+    var polyline;
+      function initialize() {
+        var mapOptions = {
+          center: new google.maps.LatLng(53.567, 9.944),
+          zoom: 2,
+          mapTypeId: google.maps.MapTypeId.ROADMAP
+        };
+        map = new google.maps.Map(document.getElementById("map-canvas"),
+            mapOptions);
+        polyline = new google.maps.Polygon({
+          map: map
+        });
+
+        d3init();
+      }
+      var context;
+      var width;
+      var height;
+      var path;
+      var graticule;
+      var equator;
+      var projection;
+
+      function d3init() {
+        width = map.getDiv().offsetWidth;
+        height = map.getDiv().offsetHeight;
+
+        //
+        //equator = {type: 'LineString', coordinates: [[-180, 20], [-90, 0], [0, -20], [90, 0], [180, 20]]};
+        d3.json("data1.json", function(dat) {
+
+            projection = d3.geo.albers();
+            projection
+              .scale(30)
+              .translate([-58,-34])
+              .rotate([-30,50,20]) // lateral / vertical / longitudinal
+              .center([-34,-58]);
+
+            context = new PolylineContext();
+            path = d3.geo.path()
+                .projection(projection)
+                .context(context);
+
+            equator = dat;
+            render();
+        });
+      }
+
+      function render() {
+        polyline.setOptions({
+          strokeColor: 'red',
+          strokeWeight: 1
+        });
+        context.setCurrent(polyline.getPath()); //context.currentPath = polyline.getPath();
+
+        path(equator);
+      }
+
+      google.maps.event.addDomListener(window, 'load', initialize);
 
 
-<body></body>
-<script src="https://d3js.org/d3.v4.min.js"></script>
-<script src="https://d3js.org/topojson.v2.min.js"></script>
-<script src='http://ajax.googleapis.com/ajax/libs/jquery/1.8.3/jquery.min.js'></script>
+    </script>
+</head>
 
-<style type="text/css">
-	.background {
-	  fill: none;
-	  pointer-events: all;
-	}
+<body>
 
-
-	.radios-borde {
-	  fill: none;
-	  stroke: #aaa;
-	  stroke-opacity: 0.25;
-	  stroke-width: .5px;
-	  pointer-events: none;
-	}
-	.overlay {
-	  fill: none;
-	  pointer-events: all;
-	}
-	.radios {
-	  fill: #aaa;
-	}
-
-	.radios .active {
-	  fill: orange;
-	}
-</style>
-
-<script>
-
-var width = 800,
-    height = 500,
-    centered,
-    scale= 2440;
-
-var svg = d3.select("body")
-	.append("svg")
-    	.attr("width", width)
-    	.attr("height", height);
-	
-var zoom = d3.zoom()
-	.scaleExtent([1, 40])
-	.translateExtent([[-1, -1], [1, 1]])
-	.on("zoom", function() {
-		var e = d3.event;
-
-    console.log(e.transform);
-
-    //features.style("stroke-width", 1.5 / d3.event.transform.k + "px");
-    //features.attr("transform", "translate(" + width / 2 + "," + height / 2 + ")scale(" + d3.event.transform.k + ")"); // updated for d3 v4
-
-		//projection.attr("scale", e.transform.k + "px");
-		//features.select(".subunits").style("stroke-width", e.transform.k + "px");
-		//features.select(".boundary").style("stroke-width", i + "px");
-	});
-
-svg.call(zoom);
-
-svg.append("rect")
-    .attr("class", "background")
-    .attr("width", width)
-    .attr("height", height)
-    .on("click", clicked);
-var features = svg.append("g");
-
-var projection = d3.geoMercator()
-    .center([-34.6131500, -58.3772300])
-    .rotate([40, 0, 0])
-    .scale(scale)
-    .translate([0, height / 2 + 1400]);
-
-var path = d3.geoPath()
-    .projection(projection);
-
-d3.json("out.geojson", function(error, dat) {
-  if (error) throw error;
-  console.log(dat);
-  //
-  features.append("g")
-      .attr("id", "radios")
-    .selectAll("path")
-    	.data(dat.features)
-    .enter().append("path")
-      .attr("d", path)
-      .on("click", clicked);
-
-  /*features.append("path")
-      .datum(topojson.mesh(dat, dat.objects.test, function(a, b) { return a != b; }))
-      .attr("id", "radios-borde")
-      .attr("d", path);*/
-
-});
-
-function clicked(d) {
-  var x, y, k;
-
-  if (d && centered !== d) {
-    var centroid = path.centroid(d);
-    x = centroid[0];
-    y = centroid[1];
-    k = 4;
-    centered = d;
-  } else {
-    x = width / 2;
-    y = height / 2;
-    k = 1;
-    centered = null;
-  }
-
-  features.selectAll("path")
-      .classed("active", centered && function(d) { return d === centered; });
-
-  features.transition()
-      .duration(200)
-      .attr("transform", "translate(" + width / 2 + "," + height / 2 + ")scale(" + k + ")translate(" + -x + "," + -y + ")")
-      .style("stroke-width", 1.5 / k + "px");
-}
-
-</script>
-
-
-
-
-
-
+    <div id="map-canvas">
+    </div>
+</body>

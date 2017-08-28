@@ -57,10 +57,12 @@ scale":[0.000672979471823426,0.0007773133988608576],"translate":[-63.39179454467
 
 topojson --width=500 --height=800 --projection 'd3.geo.mercator' -o out.json -- data/Codgeo_Buenos_Aires_con_datos/Buenos_Aires_con_datos.shp
 
+https://www.youtube.com/watch?v=wqPGFs0cqxI
+https://www.youtube.com/watch?v=hnkTi6DfVKk
 
+http://apprentice.craic.com/tutorials/41
 
-
-
+http://adamspe.github.io/d3/mapping/2015/05/29/d3-google-overlay.html
 
 
 
