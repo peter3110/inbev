@@ -22,7 +22,7 @@
 			height: 100%;
 		}
 		</style>
-		<script src="http://maps.googleapis.com/maps/api/js?v=3.exp&sensor=false"></script>
+		<script src="http://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyC6ekTJYMKIfTNXJBuEiTGTyMNXonMZhnk"></script>
 		<script src="http://ajax.googleapis.com/ajax/libs/jquery/2.0.3/jquery.min.js"></script>
 		<script src="http://d3js.org/d3.v3.min.js"></script>
 		<script src="http://d3js.org/queue.v1.min.js"></script>
@@ -33,6 +33,7 @@
 				map = null,
 				initial_zoom = 13;
 			var url = 'data1.json';
+			var path, projection , g_;
 
 			jQuery(document).ready(function() {
 				jQuery('#map-canvas').width(width);
@@ -56,18 +57,18 @@
 				map.data.setStyle(featureStyle);
 				*/
 					 
-				var projection=d3.geo.mercator()
+				projection=d3.geo.mercator()
 					.scale(40.5 * Math.pow(2, map.getZoom()))
 					.translate([0,0]);
 
-				var path = d3.geo.path().projection(projection);
+				path = d3.geo.path().projection(projection);
 		
-				var g_ = d3.select('#thissvg')
-					.attr("width", 900)
-					.attr("height", 600)
+				g_ = d3.select('#thissvg')
+					.attr("width", width)
+					.attr("height", height)
 					.append("g")
-					.attr("class", "counties")
-					.attr("id","pathgroup");
+						.attr("class", "counties")
+						.attr("id","pathgroup");
 
 	 
 
@@ -75,8 +76,9 @@
 					console.log(data);
 				    g_.selectAll("path")
 						.data(data.features)
-						.enter().append("path")
-						.attr("d", path);
+						.enter()
+							.append("path")
+							.attr("d", path);
 
 					var centerPixel = projection([map.getCenter().lng(), map.getCenter().lat()]);
 					var translate = [(width / 2 - centerPixel[0]), (height / 2 - centerPixel[1])];

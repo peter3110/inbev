@@ -43,25 +43,25 @@ html, body, #map {
 <script src="Polyline_context.js"></script>
 <script>
 
+var map, polyline, context, equator;
+var layer, layer2, path, path2, cities;
+var width = 900,
+    height = 600;
+var g_;
+
 // Create the Google Map…
-var map = new google.maps.Map(d3.select("#map").node(), {
-  zoom: 1,
+map = new google.maps.Map(d3.select("#map").node(), {
+  zoom: 10,
   center: new google.maps.LatLng(37.76487, -122.41948),
   mapTypeId: google.maps.MapTypeId.ROADMAP
 });
-var polyline = new google.maps.Polyline({
+polyline = new google.maps.Polyline({
   map: map
 });
-
-var width = 900,
-    height = 600;
 jQuery(document).ready(function() {
     jQuery('#map').width(width);
     jQuery('#map').height(height);
 });
-
-var context, equator;
-var layer, layer2, path, path2, cities;
 
 //
 // Load the station data. When the data comes back, create an overlay.
@@ -86,31 +86,32 @@ d3.json("stations.json", function(error, data) {
                     .translate([0,0]);
       path2 = d3.geo.path().projection(projection2);
         
-      var g_ = d3.select(this.getPanes().overlayLayer).append("div")
+      g_ = d3.select(this.getPanes().overlayLayer).append("div")
         .attr("width", width)
         .attr("height", height)
         .append("g")
-        .attr("class", "counties")
-        .attr("id","pathgroup");
+            .attr("class", "counties")
+            .attr("id","pathgroup");
 
-      console.log(data2);
       g_.selectAll("path")
         .data(data2.features)
-        .enter().append("path")
-        .attr("d", path);
+        .enter()
+            .append("path")
+            .attr("d", path);
 
-    var centerPixel = projection2([map.getCenter().lng(), map.getCenter().lat()]);
-    var translate = [(width / 2 - centerPixel[0]), (height / 2 - centerPixel[1])];
-    d3.select("#pathgroup").attr("transform", "translate(" + translate + ")scale(1)");
+      var centerPixel = projection2([map.getCenter().lng(), map.getCenter().lat()]);
+      var translate = [(width / 2 - centerPixel[0]), (height / 2 - centerPixel[1])];
+      d3.select("#pathgroup").attr("transform", "translate(" + translate + ")scale(1)");
 
       /////////////
       // AGREGAR STATIONS 
       var marker = layer.selectAll("svg")
           .data(d3.entries(data))
           .each(transform) // update existing markers
-        .enter().append("svg")
-          .each(transform)
-          .attr("class", "marker");
+          .enter()
+            .append("svg")
+            .each(transform) // 
+            .attr("class", "marker");
       // Add a circle.
       marker.append("circle")
           .attr("r", 4.5)
@@ -126,6 +127,7 @@ d3.json("stations.json", function(error, data) {
         d = new google.maps.LatLng(d.value[1], d.value[0]); // ver formato del json
         d = projection.fromLatLngToDivPixel(d);
 
+        console.log(this);
         return d3.select(this)
             .style("left", (d.x - padding) + "px")
             .style("top", (d.y - padding) + "px");

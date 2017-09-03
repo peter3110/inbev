@@ -45,12 +45,12 @@
         //equator = {type: 'LineString', coordinates: [[-180, 20], [-90, 0], [0, -20], [90, 0], [180, 20]]};
         d3.json("data1.json", function(dat) {
 
-            projection = d3.geo.albers();
+            projection = d3.geo.mercator();
             projection
-              .scale(30)
+              .scale(30);/*
               .translate([-58,-34])
               .rotate([-30,50,20]) // lateral / vertical / longitudinal
-              .center([-34,-58]);
+              .center([-34,-58]);*/
 
             context = new PolylineContext();
             path = d3.geo.path()
