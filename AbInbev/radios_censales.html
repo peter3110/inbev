@@ -1,0 +1,184 @@
+<html>
+<head>
+    <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?libraries=places&key=AIzaSyC6ekTJYMKIfTNXJBuEiTGTyMNXonMZhnk"></script>
+    <script type="text/javascript" src="https://ajax.googleapis.com/ajax/libs/jquery/1.7.2/jquery.min.js"></script>
+    <script type="text/javascript" src="http://cdnjs.cloudflare.com/ajax/libs/d3/2.10.0/d3.v2.min.js"></script>
+    <script src="d3.v3.min.js"></script>
+    <script src="topojson.v1.min.js"></script>
+    <style>
+        .SvgOverlay {
+            top: -2500px;
+            left: -2500px;
+            padding: 5000;
+            position: absolute;
+        }
+        .SvgOverlay > path {
+            stroke-opacity: .3;
+            fill: none;
+        }
+
+        .SvgOverlay > svg {
+            top: -2500px;
+            left: -2500px;
+            padding: 5000;
+            position: absolute;
+        }
+    </style>
+</head>
+
+<body>
+<div> 
+    <button onclick="createMap(
+        document.getElementById('zoom').value,
+        document.getElementById('lat').value,
+        document.getElementById('lng').value)"> Set Zoom </button>
+    <input type="numeric" id="zoom"> Ingresar zoom </input>
+    <input type="numeric" id="lat"> Lat </input>
+    <input type="numeric" id="lng"> Lng </input>
+
+    <br> <button onclick="showAgeData()"> Show age data </button>
+    <br> <button onclick="showEducationData()"> Show education data </button>
+</div>
+<div id="map"></div>
+
+<!-- Scripts -->
+<script>
+var zIndexDIV = 1;
+var zIndexOverlay = 3;
+var zIndexSVG = 5;
+
+// Google Maps width/height + SVG Overlay width/height
+var map_width = 500;
+var map_height = 500;
+var svg_width = map_width;
+var svg_height = map_height;
+
+var geoJson = null;
+var map = null;
+
+function showAgeData() {
+    d3.selectAll(".SvgOverlay path").style("stroke", "red");
+    // d3.selectAll(".SvgOverlay path").attr("d", function(d,i) {console.log(i);})
+    // d3.selectAll(".SvgOverlay path").attr("d", function(d,i) {console.log(path.centroid(d.geometry));})
+}
+
+function showEducationData() {
+    d3.selectAll(".SvgOverlay path").style("fill", "red");
+}
+
+var onZoomFunction = function() {
+    d3.select('svg').html('');
+    var latLng = map.getCenter();
+    var zoom = document.getElementById('zoom').value;
+    if(zoom == '') {
+        createMap(map.getZoom(), latLng.lat(), latLng.lng());
+    } else {
+        createMap(zoom, latLng.lat(), latLng.lng());
+    }
+}
+
+function createMap(zoom, lat, lng) {
+    document.getElementById('zoom').value = "";
+
+    var zoom_ = (zoom !== '') ? parseInt(zoom) : 13;
+    var lat   = (lat !== '') ? parseFloat(lat) : -34.47145;
+    var lng   = (lng !== '') ? parseFloat(lng) : -58.50776;
+
+    // Insert map
+    map = insertMap(zoom_, lat, lng);
+    google.maps.event.addListener(map, 'zoom_changed', onZoomFunction);
+
+    // Insert overlay
+    if(geoJson == null) {
+        console.log('Geojson null');
+        d3.json("data3.json", function(error, geoJson) {
+            insertOverlay(geoJson);
+        }); 
+    } else {
+        console.log('Geojson NOT null');
+        insertOverlay(geoJson);
+    }
+}
+
+function insertMap(zoom_, lat, lng) {
+    $("#map").html("");
+    d3.select("#map").style("width", map_width).style("height", map_height);
+    // Creacion del Google Maps
+    return new google.maps.Map(d3.select("#map").node(), {
+        zoom: zoom_,
+        mapTypeId: google.maps.MapTypeId.ROADMAP,
+        center: new google.maps.LatLng(lat, lng),
+        styles:[
+            {"stylers": [
+                {"saturation": -5}
+            ]}
+        ],
+        disableDoubleClickZoom: true
+    });
+}
+
+// Insert overlay function
+function insertOverlay(data) {
+    geoJson = data;
+    var overlay = new google.maps.OverlayView();
+    overlay.onAdd = function () {
+
+        // Funcion para proyeccion del overlay => proyeccion para d3
+        this.getPanes().overlayLayer.style['zIndex'] = zIndexOverlay;
+        var overlayProjection = this.getProjection();
+        var googleMapProjection = function (coordinates) {
+            var googleCoordinates = new google.maps.LatLng(coordinates[1], coordinates[0]);
+            var pixelCoordinates = overlayProjection.fromLatLngToDivPixel(googleCoordinates);
+            return [pixelCoordinates.x, pixelCoordinates.y];
+        }
+
+        // D3 preparation
+        var layer = d3.select(this.getPanes().overlayMouseTarget)
+            .append("div")
+            .attr("class", "SvgOverlay")
+            .style("z-index", zIndexDIV);
+        var svg = layer.append("svg")
+            .attr("width", svg_width)
+            .attr("height", svg_height)
+            .style("z-index", zIndexSVG);
+        var g = svg.selectAll("g")
+            .data(geoJson.features)
+            .enter().append("g");
+
+        overlay.draw = function () {
+
+            // D3 magic
+            g.append("svg:path")
+                .style("fill", function(d,i) {
+                    return i%2 == 0 ? "blue" : "red";
+                })
+                .style("fill-opacity", '0.2')
+                .attr("stroke", "Blue")
+                .attr("stroke-width", ".5px")
+                .attr("d", d3.geo.path().projection(function(d) {
+                    return googleMapProjection(d);
+                }))
+                .on("click", function(d) {
+                    console.log(d.properties.mujer);
+                });
+            /*g.append("svg:circle")
+                .attr("r", 4)
+                .attr("cx", 1)
+                .attr("cy", 1)
+                .style("fill", "red")
+                .attr("transform", function(d) {
+                    return "translate(" + googleMapProjection(d3.geo.centroid(d)) + ")";
+                })
+                .on("click", function(d) {
+                    console.log(d.properties.mujer);
+                });*/
+        };
+    };
+    // Set overlay
+    overlay.setMap(map);
+    //map.data.addGeoJson(geoJson); // path como canvas en lugar de svg..
+}
+</script>
+
+</body>
+</html>
