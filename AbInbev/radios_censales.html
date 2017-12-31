@@ -28,14 +28,15 @@
 
 <body>
 <div> 
-    <button onclick="createMap(
+    Ingresar zoom <input type="numeric" id="zoom"></input>
+    Lat <input type="numeric" id="lat"></input>
+    Lng <input type="numeric" id="lng"></input>
+    Zona <input type="text" id="zona"></input>
+    <br> <button onclick="createMap(
         document.getElementById('zoom').value,
         document.getElementById('lat').value,
-        document.getElementById('lng').value)"> Set Zoom </button>
-    <input type="numeric" id="zoom"> Ingresar zoom </input>
-    <input type="numeric" id="lat"> Lat </input>
-    <input type="numeric" id="lng"> Lng </input>
-
+        document.getElementById('lng').value,
+        document.getElementById('zona').value)"> Generate Map </button>
     <br> <button onclick="showAgeData()"> Show age data </button>
     <br> <button onclick="showEducationData()"> Show education data </button>
 </div>
@@ -48,8 +49,8 @@ var zIndexOverlay = 3;
 var zIndexSVG = 5;
 
 // Google Maps width/height + SVG Overlay width/height
-var map_width = 500;
-var map_height = 500;
+var map_width = 1500;
+var map_height = 1500;
 var svg_width = map_width;
 var svg_height = map_height;
 
@@ -63,26 +64,35 @@ function showAgeData() {
 }
 
 function showEducationData() {
-    d3.selectAll(".SvgOverlay path").style("fill", "red");
+    d3.selectAll(".SvgOverlay path").style("fill", "black");
 }
 
 var onZoomFunction = function() {
     d3.select('svg').html('');
     var latLng = map.getCenter();
     var zoom = document.getElementById('zoom').value;
+    var zona = document.getElementById('zona').value;
+    if(zona == '') {
+        zona = 'CABA';
+    }
     if(zoom == '') {
-        createMap(map.getZoom(), latLng.lat(), latLng.lng());
+        createMap(map.getZoom(), latLng.lat(), latLng.lng(), zona);
     } else {
-        createMap(zoom, latLng.lat(), latLng.lng());
+        createMap(zoom, latLng.lat(), latLng.lng(), zona);
     }
 }
 
-function createMap(zoom, lat, lng) {
+function createMap(zoom, lat, lng, zona) {
     document.getElementById('zoom').value = "";
+    
+    var zona  = document.getElementById('zona').value;
+    if(zona == '') {
+        zona = 'CABA';
+    }
 
-    var zoom_ = (zoom !== '') ? parseInt(zoom) : 13;
-    var lat   = (lat !== '') ? parseFloat(lat) : -34.47145;
-    var lng   = (lng !== '') ? parseFloat(lng) : -58.50776;
+    var zoom_ = (zoom !== '') ? parseInt(zoom) : 9;
+    var lat   = (lat !== '') ? parseFloat(lat) : -34.;
+    var lng   = (lng !== '') ? parseFloat(lng) : -58.;
 
     // Insert map
     map = insertMap(zoom_, lat, lng);
@@ -91,11 +101,21 @@ function createMap(zoom, lat, lng) {
     // Insert overlay
     if(geoJson == null) {
         console.log('Geojson null');
-        d3.json("data3.json", function(error, geoJson) {
-            insertOverlay(geoJson);
-        }); 
+        if (zona == 'CABA') {
+            d3.json("join_data_caba.json", function(error, geoJson) {
+                insertOverlay(geoJson);
+                console.log(geoJson);
+            }); 
+        } else if (zona == 'GBA') { 
+            d3.json("join_data_gba.json", function(error, geoJson) {
+                insertOverlay(geoJson);
+                console.log(geoJson);
+            }); 
+        } else {
+            console.log('ZONA MAL INGRESADA');
+        }
     } else {
-        console.log('Geojson NOT null');
+        console.log('Geojson ya fue cargado. No es necesario levantar el d3 de vuelta');
         insertOverlay(geoJson);
     }
 }
@@ -159,7 +179,7 @@ function insertOverlay(data) {
                     return googleMapProjection(d);
                 }))
                 .on("click", function(d) {
-                    console.log(d.properties.mujer);
+                    console.log(d.properties.mujer); 
                 });
             /*g.append("svg:circle")
                 .attr("r", 4)
